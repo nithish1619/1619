@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>I miss you, Bangari 💙</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --blue: #4a90d9;
+    --dark-blue: #1a3a6b;
+    --light-blue: #a8d4f5;
+    --sky: #c8e8ff;
+    --teal: #3bbfbf;
+  }
+  html, body {
+    width: 100%; height: 100%; overflow: hidden;
+    font-family: 'Nunito', sans-serif;
+    cursor: none;
+  }
+  .cursor {
+    position: fixed; width: 14px; height: 14px;
+    background: #4a90d9; border-radius: 50%;
+    pointer-events: none; z-index: 9999;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 8px rgba(74,144,217,0.7);
+  }
+  .cursor-trail {
+    position: fixed; width: 8px; height: 8px;
+    background: #a8d4f5; border-radius: 50%;
+    pointer-events: none; z-index: 9998;
+    transform: translate(-50%, -50%); opacity: 0.7;
+    transition: left 0.1s ease, top 0.1s ease;
+  }
+
+  /* Gradient sky background */
+  body {
+    background: linear-gradient(180deg, #a8d8f0 0%, #c8e8ff 40%, #d8f0d0 100%);
+  }
+
+  canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+
+  /* Clouds */
+  .cloud {
+    position: fixed; pointer-events: none; z-index: 1;
+    background: white; border-radius: 50px; opacity: 0.7;
+    animation: cloudDrift linear infinite;
+  }
+  .cloud::before, .cloud::after {
+    content: ''; position: absolute; background: white; border-radius: 50%;
+  }
+  @keyframes cloudDrift {
+    from { transform: translateX(-200px); }
+    to { transform: translateX(calc(100vw + 200px)); }
+  }
+
+  /* Decorations */
+  .deco {
+    position: fixed; pointer-events: none; z-index: 1;
+    animation: decoFloat 6s ease-in-out infinite;
+    font-size: 20px; opacity: 0.5;
+  }
+  @keyframes decoFloat {
+    0%,100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-12px) rotate(10deg); }
+  }
+
+  /* Main scene */
+  .scene {
+    position: relative; z-index: 2;
+    width: 100vw; height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 0;
+  }
+
+  .top-text {
+    font-family: 'Fredoka One', cursive;
+    font-size: 15px; color: var(--dark-blue);
+    letter-spacing: 2px; text-transform: uppercase;
+    opacity: 0; animation: fadeUp 1s ease 0.3s forwards;
+    text-shadow: 0 1px 3px rgba(255,255,255,0.8);
+  }
+  .sub-text {
+    font-family: 'Fredoka One', cursive;
+    font-size: 13px; color: #5a8abf;
+    margin-top: 4px; margin-bottom: 12px;
+    opacity: 0; animation: fadeUp 1s ease 0.6s forwards;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Stitch container */
+  .stitch-container {
+    position: relative;
+    animation: stitchFloat 4s ease-in-out infinite;
+    cursor: pointer;
+    filter: drop-shadow(0 20px 30px rgba(74,144,217,0.35));
+  }
+  @keyframes stitchFloat {
+    0%,100% { transform: translateY(0) rotate(-1deg); }
+    50% { transform: translateY(-18px) rotate(1deg); }
+  }
+  .stitch-container:hover {
+    filter: drop-shadow(0 24px 40px rgba(74,144,217,0.5));
+  }
+  .stitch-container:hover svg { transform: scale(1.04); }
+  .stitch-container svg { transition: transform 0.3s ease; }
+
+  /* Click hint */
+  .hint {
+    font-family: 'Fredoka One', cursive;
+    font-size: 13px; color: var(--dark-blue);
+    margin-top: 10px; opacity: 0.7;
+    animation: pulse 2s ease-in-out infinite;
+    text-align: center;
+  }
+  .hint.hidden { opacity: 0 !important; pointer-events: none; }
+  @keyframes pulse { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
+
+  /* Letter overlay */
+  .letter-overlay {
+    position: fixed; inset: 0;
+    background: rgba(168,216,240,0.7);
+    backdrop-filter: blur(8px);
+    z-index: 50; display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
+  }
+  .letter-overlay.visible { opacity: 1; pointer-events: auto; }
+
+  .letter-card {
+    width: min(360px, 92vw);
+    background: linear-gradient(160deg, #ffffff, #eef7ff);
+    border-radius: 24px;
+    padding: 30px 28px 22px;
+    box-shadow: 0 24px 70px rgba(74,144,217,0.3), 0 8px 20px rgba(0,0,0,0.06);
+    border: 2.5px solid rgba(74,144,217,0.2);
+    transform: scale(0.85) translateY(20px);
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    max-height: 90vh; overflow-y: auto;
+    position: relative;
+  }
+  .letter-overlay.visible .letter-card { transform: scale(1) translateY(0); }
+
+  /* Stitch ears on top of card */
+  .card-stitch {
+    position: absolute; top: -38px; left: 50%; transform: translateX(-50%);
+    font-size: 36px; animation: earWiggle 2s ease-in-out infinite;
+  }
+  @keyframes earWiggle {
+    0%,100% { transform: translateX(-50%) rotate(-5deg); }
+    50% { transform: translateX(-50%) rotate(5deg); }
+  }
+
+  .letter-number {
+    font-family: 'Fredoka One', cursive;
+    font-size: 11px; color: var(--blue);
+    text-transform: uppercase; letter-spacing: 2px; margin-bottom: 4px;
+  }
+  .letter-date { font-size: 11px; color: #7bafd4; text-align: right; margin-bottom: 14px; font-style: italic; }
+  .letter-salutation {
+    font-family: 'Fredoka One', cursive;
+    font-size: 22px; color: var(--dark-blue); margin-bottom: 12px;
+  }
+  .letter-body { font-size: 14px; line-height: 1.9; color: #2a4a6b; }
+  .letter-body p + p { margin-top: 10px; }
+  .song-line {
+    font-style: italic; font-weight: 700;
+    font-size: 14px; color: var(--dark-blue); text-align: center;
+    margin: 14px 0; line-height: 1.9; padding: 10px 14px;
+    background: linear-gradient(135deg, rgba(74,144,217,0.1), rgba(59,191,191,0.1));
+    border-radius: 12px; border-left: 3px solid var(--blue);
+  }
+  .letter-signature {
+    margin-top: 16px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 16px; color: var(--blue); text-align: right;
+  }
+  .letter-nav {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 18px; padding-top: 14px;
+    border-top: 2px dashed rgba(74,144,217,0.25);
+  }
+  .letter-nav button {
+    background: none; border: 2px solid var(--light-blue);
+    color: var(--dark-blue); padding: 7px 18px; border-radius: 20px;
+    font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 13px;
+    cursor: pointer; transition: background 0.2s, transform 0.2s;
+  }
+  .letter-nav button:hover { background: rgba(74,144,217,0.12); transform: scale(1.05); }
+  .page-dots { display: flex; gap: 7px; }
+  .page-dots span {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--light-blue); display: block;
+    transition: background 0.3s, transform 0.3s;
+  }
+  .page-dots span.active { background: var(--blue); transform: scale(1.4); }
+
+  .burst {
+    position: fixed; pointer-events: none; z-index: 100;
+    animation: burstAnim 1.3s ease forwards;
+  }
+  @keyframes burstAnim {
+    0% { transform: translate(0,0) scale(0); opacity: 1; }
+    60% { opacity: 1; }
+    100% { transform: translate(var(--tx), var(--ty)) scale(1) rotate(var(--tr)); opacity: 0; }
+  }
+
+  /* Grass at bottom */
+  .grass {
+    position: fixed; bottom: 0; left: 0; width: 100%; z-index: 1;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-trail" id="cursorTrail"></div>
+<canvas id="particleCanvas"></canvas>
+
+<!-- Clouds -->
+<div class="cloud" style="width:120px;height:35px;top:8%;animation-duration:28s;animation-delay:-5s">
+  <div style="position:absolute;width:60px;height:55px;background:white;border-radius:50%;top:-30px;left:20px"></div>
+  <div style="position:absolute;width:40px;height:40px;background:white;border-radius:50%;top:-20px;left:55px"></div>
+</div>
+<div class="cloud" style="width:90px;height:28px;top:18%;animation-duration:35s;animation-delay:-15s">
+  <div style="position:absolute;width:50px;height:45px;background:white;border-radius:50%;top:-28px;left:10px"></div>
+  <div style="position:absolute;width:35px;height:35px;background:white;border-radius:50%;top:-18px;left:45px"></div>
+</div>
+<div class="cloud" style="width:100px;height:30px;top:12%;animation-duration:40s;animation-delay:-25s">
+  <div style="position:absolute;width:55px;height:50px;background:white;border-radius:50%;top:-30px;left:15px"></div>
+</div>
+
+<!-- Decorations -->
+<div class="deco" style="top:10%;left:5%;animation-delay:0s">🌺</div>
+<div class="deco" style="top:20%;right:6%;animation-delay:1.2s">🌸</div>
+<div class="deco" style="bottom:22%;left:7%;animation-delay:2s">⭐</div>
+<div class="deco" style="bottom:28%;right:8%;animation-delay:0.5s">💙</div>
+<div class="deco" style="top:45%;left:3%;animation-delay:3s;font-size:16px">✨</div>
+<div class="deco" style="top:35%;right:4%;animation-delay:1.8s">🌺</div>
+
+<!-- Grass SVG at bottom -->
+<div class="grass">
+  <svg viewBox="0 0 1440 80" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style="width:100%;height:80px;display:block;">
+    <path d="M0,80 L0,50 Q20,20 40,50 Q60,70 80,40 Q100,15 120,45 Q140,65 160,35 Q180,10 200,40 Q220,65 240,38 Q260,12 280,42 Q300,68 320,36 Q340,8 360,38 Q380,65 400,35 Q420,10 440,42 Q460,68 480,36 Q500,8 520,40 Q540,65 560,35 Q580,10 600,42 Q620,68 640,38 Q660,12 680,40 Q700,65 720,35 Q740,10 760,42 Q780,68 800,38 Q820,12 840,42 Q860,68 880,38 Q900,12 920,42 Q940,68 960,38 Q980,12 1000,42 Q1020,68 1040,38 Q1060,12 1080,42 Q1100,68 1120,38 Q1140,12 1160,42 Q1180,68 1200,38 Q1220,12 1240,42 Q1260,68 1280,38 Q1300,12 1320,44 Q1340,68 1360,38 Q1380,12 1400,44 Q1420,68 1440,48 L1440,80 Z" fill="#5cb85c" opacity="0.6"/>
+    <path d="M0,80 L0,58 Q30,35 60,55 Q90,72 120,52 Q150,32 180,55 Q210,72 240,50 Q270,30 300,54 Q330,72 360,50 Q390,30 420,55 Q450,72 480,50 Q510,30 540,55 Q570,72 600,50 Q630,30 660,56 Q690,74 720,52 Q750,32 780,56 Q810,74 840,52 Q870,32 900,56 Q930,74 960,52 Q990,32 1020,56 Q1050,74 1080,52 Q1110,32 1140,56 Q1170,74 1200,52 Q1230,32 1260,56 Q1290,74 1320,52 Q1350,32 1380,56 Q1410,74 1440,54 L1440,80 Z" fill="#4cae4c" opacity="0.8"/>
+  </svg>
+</div>
+
+<div class="scene">
+  <div class="top-text">✨ ohana means family ✨</div>
+  <div class="sub-text">💌 3 letters inside, just for you, Bangari!</div>
+
+  <!-- Big Stitch SVG holding envelope -->
+  <div class="stitch-container" id="stitchContainer" onclick="openLetter()">
+    <svg width="300" height="380" viewBox="0 0 300 380" xmlns="http://www.w3.org/2000/svg">
+
+      <!-- ===== TAIL ===== -->
+      <path d="M 175 310 Q 210 330 220 360 Q 225 375 210 372 Q 195 368 190 350 Q 185 335 170 325 Z" fill="#3a7fd4" stroke="#1a3a6b" stroke-width="1.5"/>
+
+      <!-- ===== BODY ===== -->
+      <ellipse cx="150" cy="290" rx="72" ry="75" fill="#4a90d9"/>
+      <!-- Body shading -->
+      <ellipse cx="150" cy="295" rx="55" ry="58" fill="#5a9fe0" opacity="0.4"/>
+      <!-- Belly patch -->
+      <ellipse cx="150" cy="300" rx="40" ry="32" fill="#8cc4ee" opacity="0.55"/>
+
+      <!-- ===== BACK LEGS / FEET ===== -->
+      <!-- Left foot -->
+      <ellipse cx="100" cy="355" rx="28" ry="16" fill="#3a7fd4" stroke="#1a3a6b" stroke-width="1.5"/>
+      <ellipse cx="88" cy="350" rx="10" ry="8" fill="#3a7fd4" stroke="#1a3a6b" stroke-width="1.2"/>
+      <ellipse cx="100" cy="347" rx="10" ry="8" fill="#3a7fd4" stroke="#1a3a6b" stroke-width="1.2"/>
+      <ellipse cx="113" cy="350" rx="10" ry="8" fill="#3a7fd4" stroke="#1a3a6b" stroke-width="1.2"/>
+      <!-- Right foot -->
+      <ellipse cx="200" cy="355" rx="28" ry="16" fill="#3a7fd4" stroke="#1a3a6b" stroke-width="1.5"/>
+      <ellipse cx="188" cy="350" rx="10" ry="8" fill="#3a7fd4" stroke="#1a3a6b" stroke-width="1.2"/>
+      <ellipse cx="200" cy="347" rx="10" ry="8" fill="#3a7fd4" stroke="#1a3a6b" stroke-width="1.2"/>
+      <ellipse cx="213" cy="350" rx="10" ry="8" fill="#3a7fd4" stroke="#1a3a6b" stroke-width="1.2"/>
+
+      <!-- ===== ARMS holding envelope ===== -->
+      <!-- Left arm -->
+      <path d="M 88 265 Q 55 260 42 285 Q 38 295 50 298 Q 62 300 70 285 Q 78 272 95 278 Z" fill="#4a90d9" stroke="#1a3a6b" stroke-width="1.5"/>
+      <!-- Left hand fingers -->
+      <ellipse cx="44" cy="290" rx="9" ry="7" fill="#4a90d9" stroke="#1a3a6b" stroke-width="1.2"/>
+      <ellipse cx="38" cy="283" rx="8" ry="6.5" fill="#4a90d9" stroke="#1a3a6b" stroke-width="1.2"/>
+      <ellipse cx="38" cy="298" rx="8" ry="6.5" fill="#4a90d9" stroke="#1a3a6b" stroke-width="1.2"/>
+
+      <!-- Right arm -->
+      <path d="M 212 265 Q 245 260 258 285 Q 262 295 250 298 Q 238 300 230 285 Q 222 272 205 278 Z" fill="#4a90d9" stroke="#1a3a6b" stroke-width="1.5"/>
+      <!-- Right hand fingers -->
+      <ellipse cx="256" cy="290" rx="9" ry="7" fill="#4a90d9" stroke="#1a3a6b" stroke-width="1.2"/>
+      <ellipse cx="262" cy="283" rx="8" ry="6.5" fill="#4a90d9" stroke="#1a3a6b" stroke-width="1.2"/>
+      <ellipse cx="262" cy="298" rx="8" ry="6.5" fill="#4a90d9" stroke="#1a3a6b" stroke-width="1.2"/>
+
+      <!-- ===== ENVELOPE held by Stitch ===== -->
+      <!-- Envelope body -->
+      <rect x="62" y="285" width="176" height="118" rx="8" ry="8" fill="#e8f4ff" stroke="#4a90d9" stroke-width="2.5"/>
+      <!-- Envelope flap (triangle) -->
+      <polygon points="62,285 238,285 150,335" fill="#c8e4f8" stroke="#4a90d9" stroke-width="1.5"/>
+      <!-- Envelope bottom fold lines -->
+      <polygon points="62,403 150,355 238,403" fill="#d8eef8" stroke="#4a90d9" stroke-width="1"/>
+      <!-- Envelope side folds -->
+      <polygon points="62,285 62,403 110,344" fill="#d4ebf8" opacity="0.6"/>
+      <polygon points="238,285 238,403 190,344" fill="#d4ebf8" opacity="0.6"/>
+      <!-- Heart on envelope -->
+      <text x="150" y="380" text-anchor="middle" font-size="22" fill="#4a90d9" opacity="0.8">💙</text>
+      <!-- Envelope shine -->
+      <rect x="70" y="293" width="50" height="4" rx="2" fill="white" opacity="0.4"/>
+
+      <!-- ===== HEAD ===== -->
+      <ellipse cx="150" cy="165" rx="88" ry="82" fill="#4a90d9"/>
+      <!-- Head highlight -->
+      <ellipse cx="130" cy="130" rx="35" ry="28" fill="#6aaee0" opacity="0.3"/>
+
+      <!-- ===== EARS ===== -->
+      <!-- Left ear - large and rounded like Stitch -->
+      <ellipse cx="72" cy="88" rx="30" ry="48" fill="#3a7fd4" stroke="#1a3a6b" stroke-width="2" transform="rotate(-18 72 88)"/>
+      <ellipse cx="72" cy="88" rx="18" ry="32" fill="#6ab0e8" opacity="0.5" transform="rotate(-18 72 88)"/>
+      <!-- Right ear -->
+      <ellipse cx="228" cy="88" rx="30" ry="48" fill="#3a7fd4" stroke="#1a3a6b" stroke-width="2" transform="rotate(18 228 88)"/>
+      <ellipse cx="228" cy="88" rx="18" ry="32" fill="#6ab0e8" opacity="0.5" transform="rotate(18 228 88)"/>
+
+      <!-- ===== FACE DETAILS ===== -->
+      <!-- Eye whites -->
+      <ellipse cx="120" cy="160" rx="26" ry="28" fill="white"/>
+      <ellipse cx="180" cy="160" rx="26" ry="28" fill="white"/>
+      <!-- Irises - big cute eyes -->
+      <ellipse cx="120" cy="163" rx="18" ry="20" fill="#1a2a50"/>
+      <ellipse cx="180" cy="163" rx="18" ry="20" fill="#1a2a50"/>
+      <!-- Eye color -->
+      <ellipse cx="120" cy="163" rx="12" ry="14" fill="#2a4a8a"/>
+      <ellipse cx="180" cy="163" rx="12" ry="14" fill="#2a4a8a"/>
+      <!-- Pupils -->
+      <ellipse cx="122" cy="165" rx="7" ry="9" fill="#0a0a1a"/>
+      <ellipse cx="182" cy="165" rx="7" ry="9" fill="#0a0a1a"/>
+      <!-- Eye sparkles -->
+      <circle cx="126" cy="158" r="4" fill="white"/>
+      <circle cx="186" cy="158" r="4" fill="white"/>
+      <circle cx="116" cy="172" r="2" fill="white" opacity="0.7"/>
+      <circle cx="176" cy="172" r="2" fill="white" opacity="0.7"/>
+
+      <!-- Nose -->
+      <ellipse cx="150" cy="185" rx="15" ry="10" fill="#1a2a50"/>
+      <ellipse cx="147" cy="183" rx="5" ry="3.5" fill="#3a4a70" opacity="0.6"/>
+
+      <!-- Happy smile -->
+      <path d="M 120 200 Q 150 225 180 200" stroke="#1a2a50" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+      <!-- Tongue peeking out -->
+      <ellipse cx="150" cy="213" rx="14" ry="9" fill="#e88a9a" opacity="0.85"/>
+
+      <!-- Cheek blush -->
+      <ellipse cx="100" cy="192" rx="16" ry="9" fill="#ff9ab5" opacity="0.3"/>
+      <ellipse cx="200" cy="192" rx="16" ry="9" fill="#ff9ab5" opacity="0.3"/>
+
+      <!-- Whiskers -->
+      <line x1="55" y1="182" x2="105" y2="188" stroke="#1a2a50" stroke-width="1.8" stroke-linecap="round" opacity="0.5"/>
+      <line x1="55" y1="193" x2="105" y2="193" stroke="#1a2a50" stroke-width="1.8" stroke-linecap="round" opacity="0.5"/>
+      <line x1="55" y1="204" x2="105" y2="198" stroke="#1a2a50" stroke-width="1.8" stroke-linecap="round" opacity="0.5"/>
+      <line x1="195" y1="188" x2="245" y2="182" stroke="#1a2a50" stroke-width="1.8" stroke-linecap="round" opacity="0.5"/>
+      <line x1="195" y1="193" x2="245" y2="193" stroke="#1a2a50" stroke-width="1.8" stroke-linecap="round" opacity="0.5"/>
+      <line x1="195" y1="198" x2="245" y2="204" stroke="#1a2a50" stroke-width="1.8" stroke-linecap="round" opacity="0.5"/>
+
+      <!-- Head tufts -->
+      <ellipse cx="122" cy="85" rx="9" ry="14" fill="#3a7fd4" transform="rotate(-15 122 85)"/>
+      <ellipse cx="150" cy="80" rx="9" ry="15" fill="#3a7fd4"/>
+      <ellipse cx="178" cy="85" rx="9" ry="14" fill="#3a7fd4" transform="rotate(15 178 85)"/>
+
+      <!-- Back spines/markings -->
+      <path d="M 108 232 Q 115 220 122 232" stroke="#2a6abf" stroke-width="2" fill="none" opacity="0.4"/>
+      <path d="M 140 228 Q 148 214 156 228" stroke="#2a6abf" stroke-width="2" fill="none" opacity="0.4"/>
+      <path d="M 172 232 Q 180 220 188 232" stroke="#2a6abf" stroke-width="2" fill="none" opacity="0.4"/>
+
+    </svg>
+  </div>
+
+  <div class="hint" id="hint">🐾 tap Stitch to open your letters!</div>
+</div>
+
+<!-- Letter overlay -->
+<div class="letter-overlay" id="letterOverlay">
+  <div class="letter-card" id="letterCard">
+    <div class="card-stitch">🐾</div>
+    <div class="letter-number" id="letterNumber"></div>
+    <div class="letter-date" id="letterDate"></div>
+    <div class="letter-salutation" id="letterSalutation"></div>
+    <div class="letter-body" id="letterBody"></div>
+    <div class="letter-signature" id="letterSignature"></div>
+    <div class="letter-nav">
+      <button onclick="closeLetters()">close 💙</button>
+      <div class="page-dots" id="pageDots">
+        <span></span><span></span><span></span>
+      </div>
+      <button id="nextBtn">next →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+var d = new Date();
+var dateStr = months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+
+var letters = [
+  {
+    number: 'Letter 1 of 3 💙',
+    salutation: 'My Bangari 🌺',
+    body: '<p>I miss you.</p><p>Just that. No big words, no poetry. Just... I miss you. A lot. More than I thought was possible for one person to miss another.</p><p>I keep thinking about little things — the way you talk, the way you laugh at your own jokes before you even finish them. 🥺</p>',
+    signature: '— missing you already 💙'
+  },
+  {
+    number: 'Letter 2 of 3 💙',
+    salutation: 'Still me, still missing you 🌸',
+    body: '<p>I am still missing you.</p><p>I thought writing it once would help. It did not. So here I am, writing it again — missing you, missing you, missing you.</p><p>Did it reach you? I hope it did. 💌</p>',
+    signature: '— still yours 💙'
+  },
+  {
+    number: 'Letter 3 of 3 💙',
+    salutation: 'My Bangari 🌺',
+    body: '<p>You know how some songs just get it? I heard yours today and could not stop smiling like a fool — because it is literally you.</p><p class="song-line">ಅರೆರೆ ನಿನ್ನ ನಗುವ ನೋಡಿ<br>ಮರೆತ ಜಗವ ✨<br><span style=\"font-size:12px;display:block;margin-top:6px;font-style:normal;opacity:0.8;\">arere ninna naguva nodi marethe jagava</span></p><p>I miss your laugh the most. The whole world kind of disappears when you laugh — just like the song says. 🌸</p><p>Come back to my world soon, okay? It is too quiet without you. 🥺</p>',
+    signature: '— your biggest fan 💙'
+  }
+];
+
+var currentLetter = 0;
+var opened = false;
+
+function openLetter() {
+  opened = true;
+  document.getElementById('stitchContainer').style.animation = 'none';
+  showLetter(0);
+  document.getElementById('hint').classList.add('hidden');
+}
+
+function showLetter(index) {
+  currentLetter = index;
+  var l = letters[index];
+  document.getElementById('letterNumber').textContent = l.number;
+  document.getElementById('letterDate').textContent = dateStr;
+  document.getElementById('letterSalutation').textContent = l.salutation;
+  document.getElementById('letterBody').innerHTML = l.body;
+  document.getElementById('letterSignature').textContent = l.signature;
+
+  var dots = document.querySelectorAll('#pageDots span');
+  for (var i = 0; i < dots.length; i++) {
+    dots[i].classList.toggle('active', i === index);
+  }
+
+  var nextBtn = document.getElementById('nextBtn');
+  if (index === letters.length - 1) {
+    nextBtn.textContent = 'done ✓';
+    nextBtn.onclick = closeLetters;
+  } else {
+    nextBtn.textContent = 'next →';
+    nextBtn.onclick = nextLetter;
+  }
+
+  document.getElementById('letterOverlay').classList.add('visible');
+  burstHearts();
+}
+
+function nextLetter() {
+  if (currentLetter < letters.length - 1) {
+    var card = document.getElementById('letterCard');
+    card.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+    card.style.transform = 'scale(0.9) translateX(-30px)';
+    card.style.opacity = '0';
+    setTimeout(function() {
+      card.style.transition = '';
+      card.style.transform = '';
+      card.style.opacity = '';
+      showLetter(currentLetter + 1);
+    }, 300);
+  }
+}
+
+function closeLetters() {
+  document.getElementById('letterOverlay').classList.remove('visible');
+}
+
+function burstHearts() {
+  var emojis = ['💙','💙','⭐','🌺','💙','✨','🐾','🌸'];
+  var cx = window.innerWidth / 2;
+  var cy = window.innerHeight / 2;
+  for (var i = 0; i < 20; i++) {
+    (function(idx) {
+      setTimeout(function() {
+        var el = document.createElement('div');
+        el.classList.add('burst');
+        el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+        el.style.left = cx + 'px';
+        el.style.top = cy + 'px';
+        var angle = Math.random() * Math.PI * 2;
+        var dist = 80 + Math.random() * 160;
+        el.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
+        el.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
+        el.style.setProperty('--tr', (Math.random() * 360) + 'deg');
+        el.style.fontSize = (14 + Math.random() * 16) + 'px';
+        document.body.appendChild(el);
+        setTimeout(function() { el.remove(); }, 1400);
+      }, idx * 45);
+    })(i);
+  }
+}
+
+// Cursor
+var cursor = document.getElementById('cursor');
+var trail = document.getElementById('cursorTrail');
+document.addEventListener('mousemove', function(e) {
+  var mx = e.clientX, my = e.clientY;
+  cursor.style.left = mx + 'px'; cursor.style.top = my + 'px';
+  setTimeout(function() { trail.style.left = mx + 'px'; trail.style.top = my + 'px'; }, 80);
+});
+
+// Particles — soft bubbles
+var canvas = document.getElementById('particleCanvas');
+var ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+window.addEventListener('resize', function() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
+var particles = [];
+var pColors = ['rgba(74,144,217,','rgba(59,191,191,','rgba(168,212,245,','rgba(255,255,255,'];
+for (var i = 0; i < 45; i++) {
+  particles.push({
+    x: Math.random() * canvas.width, y: Math.random() * canvas.height,
+    r: Math.random() * 5 + 1.5,
+    dx: (Math.random() - 0.5) * 0.3, dy: -Math.random() * 0.5 - 0.1,
+    alpha: Math.random() * 0.3 + 0.05,
+    color: pColors[Math.floor(Math.random() * pColors.length)],
+    wobble: Math.random() * Math.PI * 2,
+    wobbleSpeed: (Math.random() - 0.5) * 0.02
+  });
+}
+function animateParticles() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  for (var i = 0; i < particles.length; i++) {
+    var p = particles[i];
+    p.wobble += p.wobbleSpeed;
+    p.x += p.dx + Math.sin(p.wobble) * 0.3;
+    p.y += p.dy;
+    if (p.y < -10) { p.y = canvas.height + 10; p.x = Math.random() * canvas.width; }
+    if (p.x < -10) p.x = canvas.width + 10;
+    if (p.x > canvas.width + 10) p.x = -10;
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = p.color + p.alpha + ')'; ctx.fill();
+  }
+  requestAnimationFrame(animateParticles);
+}
+animateParticles();
+</script>
+</body>
+</html>
